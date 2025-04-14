@@ -116,13 +116,11 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Icon(
-                            Icons.Default.Create,
-                            contentDescription = "Edit",
-                            tint = BluePrimary,
+                        Spacer(modifier = Modifier.weight(1f))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .size(40.dp)
+                                .padding(bottom = 16.dp)
                                 .clickable {
                                     val stringTask = Gson().toJson(task)
                                     navHostController.currentBackStackEntry?.savedStateHandle?.set(
@@ -131,7 +129,21 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                                     )
                                     navHostController.navigate(Destinations.CreateTasksScreen.route)
                                 }
-                        )
+                        ) {
+                            Text(
+                                "Edit",
+                                fontSize = 16.sp,
+                                color = txtColors
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Icon(
+                                Icons.Default.Create,
+                                contentDescription = "Edit",
+                                tint = BluePrimary,
+                                modifier = Modifier
+                                    .size(25.dp)
+                            )
+                        }
                     }
 
                 }

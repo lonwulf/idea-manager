@@ -11,7 +11,15 @@ fun List<TaskItemEntity>.mapEntityListToDomainList(): List<TaskItem> =
     }
 
 fun TaskItemEntity.mapEntityToDomain(): TaskItem =
-    TaskItem(icon = this.icon, title = this.title, timeRange = this.timeRange)
+    TaskItem(
+        icon = this.icon,
+        title = this.title,
+        timeRange = this.timeRange,
+        description = this.description,
+        date = this.date,
+        category = this.category,
+        id = this.id
+    )
 
 fun TaskItem.mapDomainToEntity(): TaskItemEntity = TaskItemEntity(
     icon = this.icon ?: "",
@@ -20,5 +28,6 @@ fun TaskItem.mapDomainToEntity(): TaskItemEntity = TaskItemEntity(
     status = this.status ?: false,
     category = this.category ?: "",
     date = this.date,
+    description = this.description?:"",
     id = this.id ?: 0
 )

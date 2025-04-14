@@ -21,6 +21,8 @@ data class TaskItemEntity(
     val status: Boolean,
     @ColumnInfo(name = "category")
     val category: String,
+    @ColumnInfo(name = "description")
+    val description: String,
     @ColumnInfo(name = "date")
     val date: LocalDate
 ) : BaseEntity()
