@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -105,12 +106,34 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                 modifier = Modifier.fillMaxWidth()
             ) {
                 item {
-                    Text(
-                        task?.title ?: "",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(bottom = 16.dp)
-                    )
+                    ) {
+                        Text(
+                            task.title ?: "",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Icon(
+                            Icons.Default.Create,
+                            contentDescription = "Edit",
+                            tint = BluePrimary,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clickable {
+                                    val stringTask = Gson().toJson(task)
+                                    navHostController.currentBackStackEntry?.savedStateHandle?.set(
+                                        "task",
+                                        stringTask
+                                    )
+                                    navHostController.navigate(Destinations.CreateTasksScreen.route)
+                                }
+                        )
+                    }
+
                 }
                 item {
                     Row(

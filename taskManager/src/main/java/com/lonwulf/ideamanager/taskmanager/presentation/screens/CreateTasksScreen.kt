@@ -71,6 +71,8 @@ import androidx.navigation.NavHostController
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
 import com.lonwulf.ideamanager.core.util.GenericResultState
 import com.lonwulf.ideamanager.navigation.Destinations
@@ -90,6 +92,7 @@ import com.lonwulf.ideamanager.taskmanager.util.toReminderMillis
 import com.lonwulf.ideamanager.taskmanager.worker.ReminderWorker
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -140,7 +143,7 @@ fun CreateTaskScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val datePickerState = rememberDatePickerState()
-    val selectedDate = datePickerState.selectedDateMillis?.let {
+    var selectedDate = datePickerState.selectedDateMillis?.let {
         convertMillisToDate(it)
     } ?: ""
     var isLoading by remember { mutableStateOf(false) }
@@ -153,6 +156,21 @@ fun CreateTaskScreen(
     var successDialogState by remember { mutableStateOf(false) }
     var task: TaskItem? = null
     val ctx = LocalContext.current
+
+    val taskString = navHostController.previousBackStackEntry
+        ?.savedStateHandle
+        ?.get<String>("task")
+    val typeToken: Type = object : TypeToken<TaskItem>() {}.type
+
+
+    if (taskString.isNullOrEmpty().not()) {
+        task = Gson().fromJson(taskString, typeToken)
+        task?.let {
+            taskName = it.title?:""
+            selectedDate = it.date.toString()
+        }
+
+    }
 
 
     if (errorDialogState) {
@@ -422,7 +440,12 @@ fun CreateTaskScreen(
                             category = selectedCategory,
                             timeRange = "$startTime - $endTime"
                         )
-                        vm.insertTask(task)
+                        if (taskString.isNullOrEmpty().not()){
+                            vm.updateTask(task)
+                        }else{
+                            vm.insertTask(task)
+                        }
+
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar(
