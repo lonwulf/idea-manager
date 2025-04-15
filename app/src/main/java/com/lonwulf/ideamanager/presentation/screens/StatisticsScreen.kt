@@ -3,6 +3,7 @@ package com.lonwulf.ideamanager.presentation.screens
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,9 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
@@ -30,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -54,7 +54,6 @@ import com.lonwulf.ideamanager.core.domain.model.TaskItem
 import com.lonwulf.ideamanager.core.util.GenericResultState
 import com.lonwulf.ideamanager.navigation.NavComposable
 import com.lonwulf.ideamanager.presentation.viewmodel.SharedViewModel
-import com.lonwulf.ideamanager.taskmanager.ui.BluePrimary
 import com.lonwulf.ideamanager.ui.theme.BlueDark
 import com.lonwulf.ideamanager.ui.theme.BlueLight
 import java.time.DayOfWeek
@@ -84,9 +83,8 @@ fun StatisticsScreen(
     vm: SharedViewModel
 ) {
     var allTasks by remember {
-        mutableStateOf(listOf(TaskItem()))
+        mutableStateOf(listOf<TaskItem>())
     }
-    val txtColors = if (!isSystemInDarkTheme()) Color.Black else BluePrimary
     val fetchTaskState by vm.fetchTasksStateFlow.collectAsState()
 
     LaunchedEffect(key1 = fetchTaskState) {
@@ -107,50 +105,44 @@ fun StatisticsScreen(
         val startOfWeek = today.minusDays(today.dayOfWeek.value - 1L)
         (0..6).map { startOfWeek.plusDays(it.toLong()) }
     }
-    val months = remember {
-        val uniqueMonths = allTasks.map { it.date!!.month }.distinct().sorted()
-
-        // Format month names and mark current month as selected
-        val currentMonth = LocalDate.now().month
+    val currentMonth = LocalDate.now().month
+    val (selectedMonth, setSelectedMonth) = remember { mutableStateOf(currentMonth) }
+    val months = remember(allTasks, selectedMonth) {
+        val uniqueMonths = allTasks.mapNotNull { it.date?.month }.distinct().sorted()
         uniqueMonths.map { month ->
             MonthData(
                 month = month,
                 name = month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
-                isSelected = month == currentMonth
+                isSelected = month == selectedMonth
             )
         }
     }
-    val selectedMonth = remember {
-        months.find { it.isSelected }?.month ?: LocalDate.now().month
-    }
-    val tasksForSelectedMonth = remember {
-        allTasks.filter { it.date!!.month == selectedMonth }
+    val tasksForSelectedMonth = remember(allTasks, selectedMonth) {
+        allTasks.filter { it.date?.month == selectedMonth }
     }
 
-    val dailyStats = remember {
+    val dailyStats = remember(currentWeekDates, tasksForSelectedMonth) {
         currentWeekDates.map { date ->
             val day = when (date.dayOfWeek) {
                 DayOfWeek.MONDAY -> "M"
                 DayOfWeek.TUESDAY -> "T"
                 DayOfWeek.WEDNESDAY -> "W"
-                DayOfWeek.THURSDAY -> "T"
+                DayOfWeek.THURSDAY -> "Th"
                 DayOfWeek.FRIDAY -> "F"
-                DayOfWeek.SATURDAY -> "S"
-                DayOfWeek.SUNDAY -> "S"
+                DayOfWeek.SATURDAY -> "Sa"
+                DayOfWeek.SUNDAY -> "Su"
             }
 
-            // Count tasks for this day
-            allTasks.takeIf { it.isNotEmpty() }?.let {
-                val tasksForDay =
-                    tasksForSelectedMonth.filter { it.date!!.dayOfWeek == date.dayOfWeek }
-                DayStatistic(
-                    day = day,
-                    dayOfWeek = date.dayOfWeek,
-                    count = tasksForDay.size,
-                    isSelected = date.dayOfWeek == DayOfWeek.FRIDAY
-                )
+            val tasksForDay = tasksForSelectedMonth.filter {
+                it.date?.dayOfWeek == date.dayOfWeek
             }
 
+            DayStatistic(
+                day = day,
+                dayOfWeek = date.dayOfWeek,
+                count = tasksForDay.size,
+                isSelected = date.dayOfWeek == DayOfWeek.FRIDAY
+            )
         }
     }
 
@@ -160,160 +152,163 @@ fun StatisticsScreen(
         allTasks.sortedByDescending { it.date }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        item {
+            Text(
+                "${allTasks.size} Tasks",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+        item {
+            Text(
+                "Assigned to you this week",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+        }
+        item {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                items(months) { month ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            setSelectedMonth(month.month)
+                        }
+                    ) {
+                        Text(
+                            month.name,
+                            fontSize = 16.sp,
+                            fontWeight = if (month.isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (month.isSelected) BlueDark else Color.Black
+                        )
 
-        Text(
-            "${allTasks.size} Tasks",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
+                        if (month.isSelected) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .width(16.dp)
+                                    .height(2.dp)
+                                    .background(BlueDark)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Statistics",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-        Text(
-            "Assigned to you this week",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            items(months) { month ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Button(
+                    onClick = {
+
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BlueLight,
+                        contentColor = Color.Black
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        month.name,
-                        fontSize = 16.sp,
-                        fontWeight = if (month.isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (month.isSelected) BlueDark else Color.Black
+                    Text("Week")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Select period",
+                        modifier = Modifier.size(16.dp)
                     )
+                }
+            }
+        }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                dailyStats.forEachIndexed { index, stat ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            stat.count.toString(),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        val maxCount = dailyStats.maxOf { it.count }.coerceAtLeast(1)
+                        val heightFraction = stat.count.toFloat() / maxCount
+                        val maxHeight = 100.dp
 
-                    if (month.isSelected) {
                         Box(
                             modifier = Modifier
-                                .padding(top = 4.dp)
-                                .width(16.dp)
-                                .height(2.dp)
-                                .background(BlueDark)
+                                .width(22.dp)
+                                .height(maxHeight * heightFraction)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.inversePrimary)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Day label
+                        Text(
+                            stat.day,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
             }
         }
-
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+        item {
             Text(
-                "Statistics",
+                "Latest Activities",
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
             )
-
-            Button(
-                onClick = {
-
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = BlueLight,
-                    contentColor = Color.Black
-                ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text("Week")
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Select period",
-                    modifier = Modifier.size(16.dp)
-                )
-            }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            dailyStats.forEachIndexed { index, stat ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        stat?.count.toString(),
-                        fontSize = 12.sp,
-                        color = txtColors,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    val maxCount = dailyStats.maxOf { it?.count!! }.coerceAtLeast(1)
-                    val heightFraction = stat?.count!!.toFloat() / maxCount
-                    val maxHeight = 100.dp
-
-                    Box(
-                        modifier = Modifier
-                            .width(22.dp)
-                            .height(maxHeight * heightFraction)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (stat.isSelected) BlueDark
-                                else Color.White
-                            )
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Day label
-                    Text(
-                        stat.day,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            "Latest Activities",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
-        )
-        LazyColumn(
-            modifier = Modifier
-                .height(300.dp)
-                .padding(bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(allTasks) { activity ->
-                ActivityCard(activity)
-            }
+        items(allTasks) { activity ->
+            ActivityCard(activity)
         }
     }
 }
 
 @Composable
 fun ActivityCard(activity: TaskItem) {
-    val backgroundColor = if (activity.status == true) Color(0xFFE8F5E9) else Color(0xFFFFF3E0)
-    val statusColor = if (activity.status == true) Color(0xFF4CAF50) else Color(0xFFFF9800)
+    val statusColor =
+        if (activity.status == true) MaterialTheme.colorScheme.secondary else Color(0xFFFF9800)
     val statusText = if (activity.status == true) "Completed" else "In Progress"
-    val containerColors = if (!isSystemInDarkTheme()) com.lonwulf.ideamanager.taskmanager.ui.BlueLight else Color.White
+    val containerColors =
+        if (!isSystemInDarkTheme()) com.lonwulf.ideamanager.taskmanager.ui.BlueLight else Color.White
 
     Card(
         modifier = Modifier
@@ -334,7 +329,7 @@ fun ActivityCard(activity: TaskItem) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 activity.icon?.let {

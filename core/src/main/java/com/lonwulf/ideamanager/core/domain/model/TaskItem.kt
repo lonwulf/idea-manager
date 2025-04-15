@@ -12,7 +12,7 @@ data class TaskItem(
     val timeRange: String? = "",
     val status: Boolean? = false,
     val category: String? = "",
-    val date: LocalDate? = null
+    val date: LocalDate? = LocalDate.now()
 ) {
     fun getStatusCompletion(): String {
         return when (status) {
