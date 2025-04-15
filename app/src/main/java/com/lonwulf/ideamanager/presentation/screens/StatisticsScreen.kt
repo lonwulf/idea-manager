@@ -108,7 +108,7 @@ fun StatisticsScreen(
         (0..6).map { startOfWeek.plusDays(it.toLong()) }
     }
     val months = remember {
-        val uniqueMonths = allTasks.map { it.date.month }.distinct().sorted()
+        val uniqueMonths = allTasks.map { it.date!!.month }.distinct().sorted()
 
         // Format month names and mark current month as selected
         val currentMonth = LocalDate.now().month
@@ -124,7 +124,7 @@ fun StatisticsScreen(
         months.find { it.isSelected }?.month ?: LocalDate.now().month
     }
     val tasksForSelectedMonth = remember {
-        allTasks.filter { it.date.month == selectedMonth }
+        allTasks.filter { it.date!!.month == selectedMonth }
     }
 
     val dailyStats = remember {
@@ -142,7 +142,7 @@ fun StatisticsScreen(
             // Count tasks for this day
             allTasks.takeIf { it.isNotEmpty() }?.let {
                 val tasksForDay =
-                    tasksForSelectedMonth.filter { it.date.dayOfWeek == date.dayOfWeek }
+                    tasksForSelectedMonth.filter { it.date!!.dayOfWeek == date.dayOfWeek }
                 DayStatistic(
                     day = day,
                     dayOfWeek = date.dayOfWeek,

@@ -7,10 +7,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.work.BackoffPolicy
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
@@ -54,7 +52,6 @@ fun TaskItem.toReminderMillis(): Long? {
                 // Try next format
             }
         }
-        // If no format worked
         if (localTime == null) return null
         val dateTime = LocalDateTime.of(date, localTime)
         val zonedDateTime = dateTime.atZone(ZoneId.systemDefault())

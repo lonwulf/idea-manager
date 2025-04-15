@@ -12,7 +12,7 @@ data class TaskItem(
     val timeRange: String? = "",
     val status: Boolean? = false,
     val category: String? = "",
-    val date: LocalDate = LocalDate.now()
+    val date: LocalDate? = null
 )
 
 data class MonthData(val month: Month, val name: String, val isSelected: Boolean = false)

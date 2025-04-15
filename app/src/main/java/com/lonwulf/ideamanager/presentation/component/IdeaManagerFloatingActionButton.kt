@@ -25,8 +25,8 @@ fun IdeaManagerFloatingActionButton(fabClicked: () -> Unit) {
         FloatingActionButton(
             shape = CircleShape,
             onClick = fabClicked,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
         ) {
             Icon(Icons.Filled.Add, contentDescription = "create object")
         }

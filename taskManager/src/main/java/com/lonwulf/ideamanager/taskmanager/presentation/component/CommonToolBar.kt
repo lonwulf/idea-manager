@@ -20,7 +20,7 @@ fun CommonToolBar(onclick: () -> Unit, title: String) {
         title = {
             Text(
                 text = title,
-                color = BlueDark,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                 fontFamily = MaterialTheme.typography.titleMedium.fontFamily
             )
@@ -29,11 +29,11 @@ fun CommonToolBar(onclick: () -> Unit, title: String) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = BlueDark
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }, colors = TopAppBarDefaults.largeTopAppBarColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.primary
         )
     )
 }

@@ -99,7 +99,6 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = modifier
                 .padding(20.dp)
-                .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
             LazyColumn(
@@ -113,6 +112,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                         Text(
                             task.title ?: "",
                             fontSize = 24.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -133,13 +133,13 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             Text(
                                 "Edit",
                                 fontSize = 16.sp,
-                                color = txtColors
+                                color = MaterialTheme.colorScheme.tertiary,
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Icon(
                                 Icons.Default.Create,
                                 contentDescription = "Edit",
-                                tint = BluePrimary,
+                                tint = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier
                                     .size(25.dp)
                             )
@@ -156,13 +156,13 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White),
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(0.8f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Default.DateRange,
                                 contentDescription = "Date",
-                                tint = BluePrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -173,7 +173,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             Text(
                                 it,
                                 fontSize = 16.sp,
-                                color = txtColors
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
@@ -182,13 +182,12 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             contentDescription = "Delete",
                             tint = Color.Red,
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(30.dp)
                                 .clickable {
                                     task.id?.let {
                                         vm.deleteTask(it)
                                         successDialogState = true
                                     }
-
                                 }
                         )
                     }
@@ -196,7 +195,8 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                 item {
                     Text(
                         "Overview",
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -205,7 +205,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                         Text(
                             it,
                             fontSize = 14.sp,
-                            color = txtColors,
+                            color = MaterialTheme.colorScheme.onBackground,
                             lineHeight = 20.sp,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -215,7 +215,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                     Text(
                         "Read More",
                         fontSize = 14.sp,
-                        color = BluePrimary,
+                        color = MaterialTheme.colorScheme.primary.copy(0.5f),
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
@@ -224,6 +224,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                     Text(
                         "Sub Tasks",
                         fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )

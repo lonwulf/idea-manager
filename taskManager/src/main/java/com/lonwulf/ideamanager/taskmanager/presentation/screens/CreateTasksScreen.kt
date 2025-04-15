@@ -1,8 +1,8 @@
 package com.lonwulf.ideamanager.taskmanager.presentation.screens
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -63,7 +63,6 @@ import com.lonwulf.ideamanager.taskmanager.presentation.component.CommonToolBar
 import com.lonwulf.ideamanager.taskmanager.presentation.component.DatePickerDialogComponent
 import com.lonwulf.ideamanager.taskmanager.presentation.viewmodel.TaskManagerViewModel
 import com.lonwulf.ideamanager.taskmanager.ui.BlueDark
-import com.lonwulf.ideamanager.taskmanager.ui.BlueLight
 import com.lonwulf.ideamanager.taskmanager.ui.BluePrimary
 import com.lonwulf.ideamanager.taskmanager.util.CircularProgressBar
 import com.lonwulf.ideamanager.taskmanager.util.ErrorAlertDialog
@@ -73,8 +72,10 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.Date
 import java.util.Locale
 
@@ -152,7 +153,9 @@ fun CreateTaskScreen(
                 task = TaskItem(
                     title = taskName,
                     description = description,
-                    category = selectedCategory
+                    category = selectedCategory,
+                    timeRange = "$startTime - $endTime",
+                    date = selectedDate.toLocalDate()
                 )
                 task?.let {
                     vm.insertTask(it)
@@ -229,12 +232,12 @@ fun CreateTaskScreen(
             modifier = modifier
                 .padding(20.dp)
                 .verticalScroll(rememberScrollState())
-                .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxSize()
         ) {
             Text(
                 "Task Name",
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -252,6 +255,7 @@ fun CreateTaskScreen(
             Text(
                 "Category",
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -266,8 +270,8 @@ fun CreateTaskScreen(
                         onClick = { selectedCategory = category },
                         label = { Text(category) },
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = if (isSelected) BlueDark else BlueLight,
-                            labelColor = if (isSelected) Color.White else Color.Black
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.secondaryContainer,
+                            labelColor = if (isSelected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     )
                 }
@@ -275,6 +279,7 @@ fun CreateTaskScreen(
             Text(
                 "Date & Time",
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -304,6 +309,7 @@ fun CreateTaskScreen(
                         snackbarHostState.showSnackbar(
                             message = it, duration = SnackbarDuration.Short
                         )
+                        selectedDate = ""
                     }
                 }
                 DatePickerDialogComponent(
@@ -324,6 +330,7 @@ fun CreateTaskScreen(
                     Text(
                         "Start time",
                         fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -353,6 +360,7 @@ fun CreateTaskScreen(
                     Text(
                         "End time",
                         fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -379,6 +387,7 @@ fun CreateTaskScreen(
             Text(
                 "Description",
                 fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -404,13 +413,15 @@ fun CreateTaskScreen(
                         dueDate = endTime.toString(),
                         required = required
                     )
+                    Log.e("Dateeeeee", selectedDate)
                     if (isSuccess) {
                         isLoading = true
                         task = TaskItem(
                             title = taskName,
                             description = description,
                             category = selectedCategory,
-                            timeRange = "$startTime - $endTime"
+                            timeRange = "$startTime - $endTime",
+                            date = selectedDate.toLocalDate()
                         )
                         if (taskString.isNullOrEmpty().not()) {
                             vm.updateTask(task)
@@ -431,11 +442,12 @@ fun CreateTaskScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BluePrimary
+                    containerColor = MaterialTheme.colorScheme.secondary,
                 )
             ) {
                 Text(
-                    "Create Task", fontSize = 16.sp, fontWeight = FontWeight.Medium
+                    "Create Task", fontSize = 16.sp, fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSecondary,
                 )
             }
         }
@@ -478,4 +490,28 @@ fun isValidTask(
 fun convertMillisToDate(millis: Long): String {
     val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     return formatter.format(Date(millis))
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun String.toLocalDate(): LocalDate? {
+    return try {
+        val formats = listOf(
+            "MM/dd/yyyy",
+            "M/d/yyyy",
+            "yyyy-MM-dd",
+            "dd/MM/yyyy"
+        )
+
+        for (pattern in formats) {
+            try {
+                val formatter = DateTimeFormatter.ofPattern(pattern)
+                return LocalDate.parse(this.trim(), formatter)
+            } catch (e: DateTimeParseException) {
+                // Try next format
+            }
+        }
+        null
+    } catch (e: Exception) {
+        null
+    }
 }

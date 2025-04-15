@@ -2,6 +2,7 @@ package com.lonwulf.ideamanager.core.domain.mapper
 
 import com.lonwulf.ideamanager.core.database.entity.TaskItemEntity
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
+import java.time.LocalDate
 
 fun List<TaskItemEntity>.mapEntityListToDomainList(): List<TaskItem> =
     mutableListOf<TaskItem>().apply {
@@ -27,7 +28,7 @@ fun TaskItem.mapDomainToEntity(): TaskItemEntity = TaskItemEntity(
     timeRange = this.timeRange ?: "",
     status = this.status ?: false,
     category = this.category ?: "",
-    date = this.date,
+    date = this.date?: LocalDate.now(),
     description = this.description?:"",
     id = this.id ?: 0
 )

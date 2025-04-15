@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -27,12 +28,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
@@ -51,8 +49,6 @@ import com.lonwulf.ideamanager.presentation.screens.TasksScreenComposable
 import com.lonwulf.ideamanager.presentation.viewmodel.SharedViewModel
 import com.lonwulf.ideamanager.taskmanager.presentation.screens.CreateTasksScreenComposable
 import com.lonwulf.ideamanager.taskmanager.presentation.screens.TaskDetailsScreenComposable
-import com.lonwulf.ideamanager.ui.theme.BlueLight
-import com.lonwulf.ideamanager.ui.theme.BluePrimary
 import com.lonwulf.ideamanager.ui.theme.IdeaManagerTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -98,6 +94,7 @@ class MainActivity : ComponentActivity() {
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(innerPadding)
                     ) {
                         val composables = mapOf(
@@ -141,8 +138,8 @@ class MainActivity : ComponentActivity() {
         )
         Box {
             NavigationBar(
-                containerColor = Color.White,
-                contentColor = BluePrimary,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 tonalElevation = 5.dp
             ) {
                 screens.forEachIndexed { index, screen ->
@@ -171,11 +168,11 @@ class MainActivity : ComponentActivity() {
         NavigationBarItem(
             label = { Text(text = screen.title) },
             colors = NavigationBarItemColors(
-                selectedIconColor = BluePrimary,
-                selectedTextColor = BluePrimary,
+                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
                 unselectedIconColor = Color.Gray,
                 unselectedTextColor = Color.Gray,
-                selectedIndicatorColor = BlueLight,
+                selectedIndicatorColor = MaterialTheme.colorScheme.tertiaryContainer,
                 disabledIconColor = Color.Gray,
                 disabledTextColor = Color.Gray
             ),
@@ -199,15 +196,11 @@ class MainActivity : ComponentActivity() {
         TopAppBar(
             title = { Text(text = title) },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                scrolledContainerColor = colorResource(
-                    id = R.color.white
-                ),
-                navigationIconContentColor = MaterialTheme.colorScheme.background,
-                titleContentColor = MaterialTheme.colorScheme.background,
-                actionIconContentColor = colorResource(
-                    id = R.color.white
-                )
+                containerColor = MaterialTheme.colorScheme.primary,
+                scrolledContainerColor = MaterialTheme.colorScheme.onPrimary,
+                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
             )
         )
     }
