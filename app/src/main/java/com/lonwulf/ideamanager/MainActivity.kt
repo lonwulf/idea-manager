@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
                                 sharedViewModel
                             ),
                             TopLevelDestinations.AllTasksScreen.route to TasksScreenComposable(
-//                                sharedViewModel
+                                sharedViewModel
                             ),
                             TopLevelDestinations.SettingsScreen.route to SettingsScreenComposable(
 //                                sharedViewModel

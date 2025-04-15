@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.gson)
+    implementation(libs.compose.constraint.layout)
 
     implementation(libs.androidx.work)
     testImplementation(libs.junit)

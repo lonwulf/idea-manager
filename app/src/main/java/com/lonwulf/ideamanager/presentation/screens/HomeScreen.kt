@@ -45,6 +45,7 @@ import com.lonwulf.ideamanager.navigation.NavComposable
 import com.lonwulf.ideamanager.presentation.component.ShowEmptyData
 import com.lonwulf.ideamanager.presentation.component.TaskCard
 import com.lonwulf.ideamanager.presentation.viewmodel.SharedViewModel
+import com.lonwulf.ideamanager.taskmanager.util.CircularProgressBar
 
 class HomeScreenComposable(private val sharedViewModel: SharedViewModel) : NavComposable {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -71,13 +72,17 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         vm.fetchAllTasks()
     }
+    var isLoading by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(key1 = fetchTaskState) {
         when (fetchTaskState) {
-            is GenericResultState.Loading -> {}
-            is GenericResultState.Empty -> {}
-            is GenericResultState.Error -> {}
+            is GenericResultState.Loading -> isLoading = true
+            is GenericResultState.Empty,
+            is GenericResultState.Error -> isLoading = false
+
             is GenericResultState.Success -> {
+                isLoading = false
                 tasks =
                     (fetchTaskState as GenericResultState.Success<List<TaskItem>>).result
                         ?: emptyList()
@@ -89,6 +94,7 @@ fun HomeScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        CircularProgressBar(isDisplayed = isLoading)
         tasks.takeIf { it.isNotEmpty() }?.let {
             Card(
                 modifier = Modifier

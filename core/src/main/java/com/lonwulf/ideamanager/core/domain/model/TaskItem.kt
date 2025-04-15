@@ -13,7 +13,18 @@ data class TaskItem(
     val status: Boolean? = false,
     val category: String? = "",
     val date: LocalDate? = null
-)
+) {
+    fun getStatusCompletion(): String {
+        return when (status) {
+            false -> Status.PENDING.name
+            else -> Status.COMPLETED.name
+        }
+    }
+}
+
+enum class Status {
+    COMPLETED, PENDING
+}
 
 data class MonthData(val month: Month, val name: String, val isSelected: Boolean = false)
 data class DayStatistic(
