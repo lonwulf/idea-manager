@@ -1,13 +1,19 @@
 package com.lonwulf.ideamanager.taskmanager.domain.usecase
 
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
+import com.lonwulf.ideamanager.core.util.GenericUseCaseResult
 import com.lonwulf.ideamanager.taskmanager.domain.repository.TaskRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.koin.java.KoinJavaComponent.inject
 
 class UpdateTaskUseCase {
     private val repository: TaskRepository by inject(TaskRepository::class.java)
-    suspend operator fun invoke(task: TaskItem) {
-        repository.updateTask(task)
+    operator fun invoke(task: TaskItem): Flow<GenericUseCaseResult<Int?>> = flow {
+        val result = repository.updateTask(task)
+        result.takeIf { it > 0 }?.let {
+            emit(GenericUseCaseResult(it, isSuccessful = true))
+        } ?: emit(GenericUseCaseResult(null, isSuccessful = false, "error updating"))
 
     }
 }

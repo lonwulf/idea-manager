@@ -19,7 +19,7 @@ class TaskRepositoryImpl(private val dao: TaskItemDao) : TaskRepository {
         return dao.getTask(id).mapEntityToDomain()
     }
 
-    override suspend fun updateTask(task: TaskItem) {
-        dao.update(task.mapDomainToEntity())
+    override suspend fun updateTask(task: TaskItem): Int {
+        return dao.updateTask(task.mapDomainToEntity())
     }
 }

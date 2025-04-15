@@ -1,5 +1,6 @@
 package com.lonwulf.ideamanager.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHostState
@@ -39,6 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
 import com.lonwulf.ideamanager.core.util.GenericResultState
@@ -74,6 +77,13 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         vm.fetchAllTasks()
     }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            vm.fetchAllTasks()
+        }
+    }
     var isLoading by remember { mutableStateOf(false) }
 
 
@@ -98,6 +108,7 @@ fun HomeScreen(
     ) {
         CircularProgressBar(isDisplayed = isLoading)
         tasks.takeIf { it.isNotEmpty() }?.let {
+            Log.e("STHHHH", tasks.toString())
             val progress = calculateProgress(tasks)
             val percentage = (progress * 100).toInt()
             val totalBarWidth = 100.dp

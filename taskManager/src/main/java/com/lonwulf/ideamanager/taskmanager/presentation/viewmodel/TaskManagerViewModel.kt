@@ -49,7 +49,16 @@ class TaskManagerViewModel(
     }
 
     fun updateTask(task: TaskItem) = viewModelScope.launch(Dispatchers.IO) {
-        updateTaskUseCase(task)
+        updateTaskUseCase(task).onStart {
+            setUpdateTasksResult(GenericResultState.Loading)
+        }
+            .flowOn(Dispatchers.IO)
+            .collect { result ->
+                result.takeIf { it.isSuccessful }?.let {
+                    setUpdateTasksResult(GenericResultState.Success(true))
+                } ?: setUpdateTasksResult(GenericResultState.Error(msg = result.msg))
+
+            }
     }
 
     fun deleteTask(id: Int) = viewModelScope.launch(Dispatchers.IO) {

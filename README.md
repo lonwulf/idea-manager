@@ -48,15 +48,22 @@ Take home Assignment for task manager app
 ## Screenshots
 
 ### Home Screen
-![Home Screen](./Screenshot_20250414_215150.png)
+![Light](./Screenshot_20250415_183151.png)    ![Dark](./Screenshot_20250415_183629.png)
 
 ### Create Task Screen
-![Create Task Screen](./Screenshot_20250414_200359.png)
-![Create Task Screen](./Screenshot_20250414_200419.png)
-![Create Task Screen](./Screenshot_20250414_200440.png)
+![Light](./Screenshot_20250415_183355.png)
+![Light](./Screenshot_20250415_183453.png)
+![Light](./Screenshot_20250415_183510.png)
 
 ### Statistics Screen
-![Settings Screen](./Screenshot_20250414_210558.png)
+![Light](./Screenshot_20250415_183532.png)    ![Dark](./Screenshot_20250415_183614.png)
 
 ### Task Detail Screen
-![No internet](./Screenshot_20250414_220821.png)
+![Light](./Screenshot_20250415_183236.png)    ![Dark](./Screenshot_20250415_183614.png)
+
+### Settings Screen
+![Light](./Screenshot_20250415_183559.png)    ![Dark](./Screenshot_20250415_183614.png)
+
+### All tasks Screen
+![Light](./Screenshot_20250415_183205.png)    ![Dark](./Screenshot_20250415_183641.png)
+![Light](./Screenshot_20250415_183220.png)

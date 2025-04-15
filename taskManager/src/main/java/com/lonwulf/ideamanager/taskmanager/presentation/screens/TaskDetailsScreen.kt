@@ -1,5 +1,7 @@
 package com.lonwulf.ideamanager.taskmanager.presentation.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,6 +31,8 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +49,7 @@ import androidx.navigation.NavHostController
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
+import com.lonwulf.ideamanager.core.util.GenericResultState
 import com.lonwulf.ideamanager.navigation.Destinations
 import com.lonwulf.ideamanager.navigation.NavComposable
 import com.lonwulf.ideamanager.navigation.TopLevelDestinations
@@ -52,8 +57,11 @@ import com.lonwulf.ideamanager.taskmanager.presentation.component.CommonToolBar
 import com.lonwulf.ideamanager.taskmanager.presentation.viewmodel.TaskManagerViewModel
 import com.lonwulf.ideamanager.taskmanager.ui.BlueLight
 import com.lonwulf.ideamanager.taskmanager.ui.BluePrimary
+import com.lonwulf.ideamanager.taskmanager.util.CircularProgressBar
+import com.lonwulf.ideamanager.taskmanager.util.ErrorAlertDialog
 import com.lonwulf.ideamanager.taskmanager.util.SuccessAlertDialog
 import com.lonwulf.ideamanager.taskmanager.util.cancelReminder
+import com.lonwulf.ideamanager.taskmanager.util.scheduleReminderWithWorkManager
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.lang.reflect.Type
 
@@ -73,6 +81,7 @@ enum class SuccessStateVariant {
     UPDATE_TASK, DELETE_TASK
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostController) {
     val backStackEntry =
@@ -89,8 +98,29 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
     var errorDialogState by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     var successDialogStateVariant by remember { mutableStateOf("") }
+    val updateTaskState by vm.updateTaskStateFlow.collectAsState()
+    var isLoading by remember { mutableStateOf(false) }
+    var errMsg by remember { mutableStateOf("") }
 
 
+    LaunchedEffect(updateTaskState) {
+        when (updateTaskState) {
+            is GenericResultState.Loading -> {}
+            is GenericResultState.Empty -> isLoading = false
+            is GenericResultState.Error -> {
+                isLoading = false
+                errorDialogState = true
+                errMsg = (updateTaskState as GenericResultState.Error).msg ?: ""
+            }
+
+            is GenericResultState.Success -> {
+                isLoading = false
+                scheduleReminderWithWorkManager(ctx, task)
+                successDialogStateVariant = SuccessStateVariant.UPDATE_TASK.name
+                successDialogState = true
+            }
+        }
+    }
 
     if (successDialogState) {
         val message =
@@ -99,6 +129,18 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
             onDismissRequest = { errorDialogState = false }, onConfirmation = {
                 navHostController.navigate(TopLevelDestinations.HomeScreen.route)
             }, successMsg = message
+        )
+    }
+    if (errorDialogState) {
+        ErrorAlertDialog(
+            onDismissRequest = { errorDialogState = false }, onConfirmation = {
+                errorDialogState = false
+                task.id?.let {
+                    cancelReminder(ctx, it)
+                }
+                val updatedTask = task.copy(status = true)
+                vm.updateTask(updatedTask)
+            }, errMsg = errMsg
         )
     }
 
@@ -115,6 +157,7 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                 .padding(20.dp)
                 .fillMaxSize()
         ) {
+            CircularProgressBar(isDisplayed = isLoading)
             LazyColumn(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -246,30 +289,30 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
-                item {
-                    Spacer(modifier = Modifier.height(50.dp))
-                    Button(
-                        onClick = {
-                            task.id?.let {
-                                cancelReminder(ctx, it)
-                                val updatedTask = task.copy(status = true)
-                                vm.updateTask(updatedTask)
-                                successDialogStateVariant = SuccessStateVariant.DELETE_TASK.name
-                                successDialogState = true
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                        )
-                    ) {
-                        Text(
-                            "Complete Task", fontSize = 16.sp, fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSecondary,
-                        )
+                task.takeIf { it.status == false }?.let {
+                    item {
+                        Spacer(modifier = Modifier.height(50.dp))
+                        Button(
+                            onClick = {
+                                task.id?.let {
+                                    cancelReminder(ctx, it)
+                                    val updatedTask = task.copy(status = true)
+                                    vm.updateTask(updatedTask)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                            )
+                        ) {
+                            Text(
+                                "Complete Task", fontSize = 16.sp, fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSecondary,
+                            )
+                        }
                     }
                 }
 //            items(subtask) { subtask ->

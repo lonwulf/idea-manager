@@ -95,6 +95,10 @@ class CreateTasksScreenComposable : NavComposable {
 
 }
 
+enum class UpdateStateVariant {
+    UPDATE_TASK, CREATE_TASK
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,11 +128,14 @@ fun CreateTaskScreen(
     val endTimeInteractionSource = remember { MutableInteractionSource() }
     val startTimeInteractionSource = remember { MutableInteractionSource() }
     val insertTaskState by vm.insertTaskStateFlow.collectAsState()
+    val updateTaskState by vm.updateTaskStateFlow.collectAsState()
     var errMsg by remember { mutableStateOf("") }
     var errorDialogState by remember { mutableStateOf(false) }
     var successDialogState by remember { mutableStateOf(false) }
     var task: TaskItem? = null
     val ctx = LocalContext.current
+    var successDialogStateVariant by remember { mutableStateOf("") }
+
 
     val taskString = navHostController.previousBackStackEntry
         ?.savedStateHandle
@@ -144,7 +151,6 @@ fun CreateTaskScreen(
         }
 
     }
-
 
     if (errorDialogState) {
         ErrorAlertDialog(
@@ -164,10 +170,12 @@ fun CreateTaskScreen(
         )
     }
     if (successDialogState) {
+        val message =
+            if (successDialogStateVariant == UpdateStateVariant.CREATE_TASK.name) "Successfully created Task" else "Successfully updated Task"
         SuccessAlertDialog(
             onDismissRequest = { errorDialogState = false }, onConfirmation = {
                 navHostController.navigate(TopLevelDestinations.HomeScreen.route)
-            }, successMsg = "Successfully created Task"
+            }, successMsg = message
         )
     }
 
@@ -198,7 +206,7 @@ fun CreateTaskScreen(
             }
         }
     }
-    LaunchedEffect(key1 = insertTaskState) {
+    LaunchedEffect(key1 = insertTaskState, key2 = updateTaskState) {
         when (insertTaskState) {
             is GenericResultState.Loading -> {}
             is GenericResultState.Empty -> isLoading = false
@@ -213,6 +221,25 @@ fun CreateTaskScreen(
                 task?.let {
                     scheduleReminderWithWorkManager(ctx, it)
                 }
+                successDialogStateVariant = UpdateStateVariant.CREATE_TASK.name
+                successDialogState = true
+            }
+        }
+        when (updateTaskState) {
+            is GenericResultState.Loading -> {}
+            is GenericResultState.Empty -> isLoading = false
+            is GenericResultState.Error -> {
+                isLoading = false
+                errorDialogState = true
+                errMsg = (updateTaskState as GenericResultState.Error).msg ?: ""
+            }
+
+            is GenericResultState.Success -> {
+                isLoading = false
+                task?.let {
+                    scheduleReminderWithWorkManager(ctx, it)
+                }
+                successDialogStateVariant = UpdateStateVariant.UPDATE_TASK.name
                 successDialogState = true
             }
         }

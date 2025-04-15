@@ -365,4 +365,5 @@ fun ActivityCard(activity: TaskItem) {
             }
         }
     }
+    Spacer(modifier = Modifier.height(10.dp))
 }
