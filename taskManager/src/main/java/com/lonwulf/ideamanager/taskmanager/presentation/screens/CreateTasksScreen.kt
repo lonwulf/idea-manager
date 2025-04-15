@@ -1,10 +1,8 @@
 package com.lonwulf.ideamanager.taskmanager.presentation.screens
 
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -15,12 +13,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,11 +22,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -43,9 +32,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,22 +42,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
@@ -79,7 +58,9 @@ import com.lonwulf.ideamanager.navigation.Destinations
 import com.lonwulf.ideamanager.navigation.NavComposable
 import com.lonwulf.ideamanager.navigation.TopLevelDestinations
 import com.lonwulf.ideamanager.taskmanager.R
+import com.lonwulf.ideamanager.taskmanager.presentation.component.ClockPickerDialog
 import com.lonwulf.ideamanager.taskmanager.presentation.component.CommonToolBar
+import com.lonwulf.ideamanager.taskmanager.presentation.component.DatePickerDialogComponent
 import com.lonwulf.ideamanager.taskmanager.presentation.viewmodel.TaskManagerViewModel
 import com.lonwulf.ideamanager.taskmanager.ui.BlueDark
 import com.lonwulf.ideamanager.taskmanager.ui.BlueLight
@@ -87,24 +68,15 @@ import com.lonwulf.ideamanager.taskmanager.ui.BluePrimary
 import com.lonwulf.ideamanager.taskmanager.util.CircularProgressBar
 import com.lonwulf.ideamanager.taskmanager.util.ErrorAlertDialog
 import com.lonwulf.ideamanager.taskmanager.util.SuccessAlertDialog
-import com.lonwulf.ideamanager.taskmanager.util.dpToPx
-import com.lonwulf.ideamanager.taskmanager.util.toReminderMillis
-import com.lonwulf.ideamanager.taskmanager.worker.ReminderWorker
+import com.lonwulf.ideamanager.taskmanager.util.scheduleReminderWithWorkManager
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 class CreateTasksScreenComposable : NavComposable {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -166,7 +138,7 @@ fun CreateTaskScreen(
     if (taskString.isNullOrEmpty().not()) {
         task = Gson().fromJson(taskString, typeToken)
         task?.let {
-            taskName = it.title?:""
+            taskName = it.title ?: ""
             selectedDate = it.date.toString()
         }
 
@@ -440,9 +412,9 @@ fun CreateTaskScreen(
                             category = selectedCategory,
                             timeRange = "$startTime - $endTime"
                         )
-                        if (taskString.isNullOrEmpty().not()){
+                        if (taskString.isNullOrEmpty().not()) {
                             vm.updateTask(task)
-                        }else{
+                        } else {
                             vm.insertTask(task)
                         }
 
@@ -493,24 +465,6 @@ fun CreateTaskScreen(
 
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-private fun scheduleReminderWithWorkManager(context: Context, task: TaskItem) {
-    val reminderTimeMillis = task.toReminderMillis() ?: return
-    val delayMillis = reminderTimeMillis - System.currentTimeMillis()
-    if (delayMillis <= 0) return // Task is in the past, skip
-
-    val inputData = Data.Builder()
-        .putString("TASK_TITLE", task.title)
-        .build()
-
-    val workRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
-        .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
-        .setInputData(inputData)
-        .build()
-
-    WorkManager.getInstance(context).enqueue(workRequest)
-}
-
 fun isValidTask(
     title: String?, dueDate: String?, required: String
 ): Pair<Boolean, String> {
@@ -524,355 +478,4 @@ fun isValidTask(
 fun convertMillisToDate(millis: Long): String {
     val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     return formatter.format(Date(millis))
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerDialogComponent(
-    showDatePicker: Boolean,
-    onDismiss: () -> Unit,
-    onError: (String?) -> Unit,
-    datePickerState: DatePickerState
-) {
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = onDismiss,
-            confirmButton = {
-                TextButton(onClick = {
-                    val selectedLocalDate = datePickerState.selectedDateMillis?.let {
-                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                    }
-                    selectedLocalDate?.let {
-                        if (it.isBefore(LocalDate.now())) {
-                            onError("You cannot select a past date.")
-                        } else {
-                            onError(null)
-                            onDismiss()
-                        }
-                    } ?: run {
-                        onError("Please select a valid date.")
-                    }
-                    onDismiss()
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onDismiss() }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun ClockPickerDialog(
-    initialTime: LocalTime,
-    onTimeSelected: (LocalTime) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var selectedHour by remember { mutableStateOf(initialTime.hour) }
-    var selectedMinute by remember { mutableStateOf(initialTime.minute) }
-    var isHourSelection by remember { mutableStateOf(true) }
-    var is24HourFormat by remember { mutableStateOf(false) }
-    var isAM by remember { mutableStateOf(initialTime.hour < 12) }
-    val ctx = LocalContext.current
-
-    val displayHour = remember(selectedHour, is24HourFormat) {
-        when {
-            is24HourFormat -> selectedHour
-            selectedHour == 0 -> 12
-            selectedHour > 12 -> selectedHour - 12
-            else -> selectedHour
-        }
-    }
-
-    val hourString = remember(displayHour) {
-        displayHour.toString().padStart(2, '0')
-    }
-
-    val minuteString = remember(selectedMinute) {
-        selectedMinute.toString().padStart(2, '0')
-    }
-
-    val period = remember(isAM) {
-        if (isAM) "AM" else "PM"
-    }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Title
-                Text(
-                    text = "Select Time",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(bottom = 24.dp)
-                )
-
-                // Digital time display
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                ) {
-                    Text(
-                        text = hourString,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isHourSelection) MaterialTheme.colorScheme.primary else Color.Gray,
-                        modifier = Modifier.clickable { isHourSelection = true }
-                    )
-
-                    Text(
-                        text = ":",
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
-
-                    Text(
-                        text = minuteString,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (!isHourSelection) MaterialTheme.colorScheme.primary else Color.Gray,
-                        modifier = Modifier.clickable { isHourSelection = false }
-                    )
-
-                    if (!is24HourFormat) {
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "AM",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isAM) MaterialTheme.colorScheme.primary else Color.Gray,
-                                modifier = Modifier
-                                    .clickable {
-                                        isAM = true
-                                        if (!isAM && selectedHour >= 12) {
-                                            selectedHour -= 12
-                                        } else if (!isAM && selectedHour < 12) {
-                                            selectedHour += 12
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-
-                            Text(
-                                text = "PM",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (!isAM) MaterialTheme.colorScheme.primary else Color.Gray,
-                                modifier = Modifier
-                                    .clickable {
-                                        isAM = false
-                                        if (isAM && selectedHour < 12) {
-                                            selectedHour += 12
-                                        } else if (!isAM && selectedHour >= 12) {
-                                            selectedHour -= 12
-                                        }
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Analog clock face
-                Box(
-                    modifier = Modifier
-                        .size(256.dp)
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Clock face
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        color = Color.White,
-                        shape = CircleShape
-                    ) {}
-
-                    Surface(
-                        modifier = Modifier
-                            .size(12.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = CircleShape
-                    ) {}
-
-                    // Hour numbers
-                    if (isHourSelection) {
-                        for (hour in 1..12) {
-                            val angleRad = (hour * (2 * PI / 12) - PI / 2).toFloat()
-                            val radius = 108.dp
-                            val x = cos(angleRad) * dpToPx(radius)
-                            val y = sin(angleRad) * dpToPx(radius)
-
-                            val isSelected = when {
-                                is24HourFormat -> hour == selectedHour || (hour + 12) == selectedHour
-                                selectedHour == 0 -> hour == 12
-                                selectedHour > 12 -> hour == selectedHour - 12
-                                else -> hour == selectedHour
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .offset(x = x.dp, y = y.dp)
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                                    .clickable {
-                                        selectedHour = when {
-                                            is24HourFormat -> hour
-                                            !isAM -> if (hour == 12) 12 else hour + 12
-                                            else -> if (hour == 12) 0 else hour
-                                        }
-                                        isHourSelection = false
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = hour.toString(),
-                                    fontSize = 16.sp,
-                                    color = if (isSelected) Color.White else Color.Black
-                                )
-                            }
-                        }
-
-                        // Clock hand
-                        val handAngleRad = when {
-                            selectedHour == 0 -> (12 * (2 * PI / 12) - PI / 2).toFloat()
-                            selectedHour > 12 -> ((selectedHour - 12) * (2 * PI / 12) - PI / 2).toFloat()
-                            else -> (selectedHour * (2 * PI / 12) - PI / 2).toFloat()
-                        }
-
-                        val handLength = dpToPx(90.dp)
-                        val endX = cos(handAngleRad) * handLength
-                        val endY = sin(handAngleRad) * handLength
-
-                        // Draw clock hand
-                        Box(
-                            modifier = Modifier
-                                .width(90.dp)
-                                .height(2.dp)
-                                .rotate(handAngleRad * (180 / PI.toFloat()) + 90)
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
-                    } else {
-                        // Minute markers
-                        for (minute in 0..55 step 5) {
-                            val angleRad = (minute * (2 * PI / 60) - PI / 2).toFloat()
-                            val radius = dpToPx(108.dp)
-                            val x = cos(angleRad) * radius
-                            val y = sin(angleRad) * radius
-
-                            val displayMinute = minute
-                            val isSelected = displayMinute == selectedMinute
-
-                            Box(
-                                modifier = Modifier
-                                    .offset(x = x.dp, y = y.dp)
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                                    .clickable {
-                                        selectedMinute = displayMinute
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = displayMinute.toString().padStart(2, '0'),
-                                    fontSize = 16.sp,
-                                    color = if (isSelected) Color.White else Color.Black
-                                )
-                            }
-                        }
-
-                        // Minute hand
-                        val handAngleRad = (selectedMinute * (2 * PI / 60) - PI / 2).toFloat()
-                        val handLength = 90.dp
-
-                        // Draw minute hand
-                        Box(
-                            modifier = Modifier
-                                .width(handLength)
-                                .height(2.dp)
-                                .rotate(handAngleRad * (180 / PI.toFloat()) + 90)
-                                .background(MaterialTheme.colorScheme.primary)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Bottom buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = onDismiss
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            val finalHour = if (!is24HourFormat) {
-                                when {
-                                    !isAM && selectedHour < 12 -> selectedHour + 12
-                                    isAM && selectedHour == 12 -> 0
-                                    else -> selectedHour
-                                }
-                            } else {
-                                selectedHour
-                            }
-
-                            onTimeSelected(LocalTime.of(finalHour, selectedMinute))
-                        }
-                    ) {
-                        Text("OK")
-                    }
-                }
-            }
-        }
-    }
 }

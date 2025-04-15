@@ -62,26 +62,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            IdeaManagerTheme {
+            IdeaManagerTheme(darkTheme = false) {
                 val sheetState = rememberModalBottomSheetState()
                 val sharedViewModel = koinViewModel<SharedViewModel>()
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 val snackBarHostState = remember { SnackbarHostState() }
-                var fabActionState by remember { mutableStateOf(false) }
-
                 val hideAppBarsInScreen =
                     listOf(
                         Destinations.TaskDetailsScreen.route,
                         Destinations.CreateTasksScreen.route
                     )
                 val showAppBars = currentDestination?.route !in hideAppBarsInScreen
-                val screensToShowFAB = listOf(
-                    TopLevelDestinations.HomeScreen.route,
-                    TopLevelDestinations.AllTasksScreen.route
-                )
-                val showFAB = currentDestination?.route in screensToShowFAB
 
                 Scaffold(
                     snackbarHost = { SnackbarHost(snackBarHostState) },
