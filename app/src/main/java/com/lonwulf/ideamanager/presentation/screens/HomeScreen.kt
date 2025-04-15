@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHostState
@@ -42,6 +43,7 @@ import androidx.navigation.NavHostController
 import com.lonwulf.ideamanager.core.domain.model.TaskItem
 import com.lonwulf.ideamanager.core.util.GenericResultState
 import com.lonwulf.ideamanager.navigation.NavComposable
+import com.lonwulf.ideamanager.navigation.TopLevelDestinations
 import com.lonwulf.ideamanager.presentation.component.ShowEmptyData
 import com.lonwulf.ideamanager.presentation.component.TaskCard
 import com.lonwulf.ideamanager.presentation.viewmodel.SharedViewModel
@@ -96,6 +98,9 @@ fun HomeScreen(
     ) {
         CircularProgressBar(isDisplayed = isLoading)
         tasks.takeIf { it.isNotEmpty() }?.let {
+            val progress = calculateProgress(tasks)
+            val percentage = (progress * 100).toInt()
+            val totalBarWidth = 100.dp
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,7 +153,7 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Text(
-                                "40%",
+                                "$percentage%",
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -158,7 +163,7 @@ fun HomeScreen(
 
                         Box(
                             modifier = Modifier
-                                .width(100.dp)
+                                .width(totalBarWidth)
                                 .height(4.dp)
                                 .clip(RoundedCornerShape(2.dp))
                                 .background(
@@ -169,7 +174,7 @@ fun HomeScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .width(40.dp)
+                                    .width(totalBarWidth * progress)
                                     .height(4.dp)
                                     .clip(RoundedCornerShape(2.dp))
                                     .background(MaterialTheme.colorScheme.onSecondaryContainer)
@@ -192,7 +197,9 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold
                 )
 
-                TextButton(onClick = { /* Handle see all */ }) {
+                TextButton(onClick = {
+                    navHostController.navigate(TopLevelDestinations.AllTasksScreen.route)
+                }) {
                     Text(
                         "See All",
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
@@ -209,5 +216,11 @@ fun HomeScreen(
             }
         } ?: ShowEmptyData()
     }
+}
+
+fun calculateProgress(taskItems: List<TaskItem>): Float {
+    if (taskItems.isEmpty()) return 0f
+    val completedCount = taskItems.count { it.status == true }
+    return completedCount.toFloat() / taskItems.size
 }
 
