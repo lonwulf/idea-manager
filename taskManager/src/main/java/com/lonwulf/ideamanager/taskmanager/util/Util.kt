@@ -94,3 +94,7 @@ fun scheduleReminderWithWorkManager(context: Context, task: TaskItem) {
         "Scheduled reminder for task ${task.title} at ${Date(reminderTimeMillis)}"
     )
 }
+fun cancelReminder(context: Context, taskId: Int) {
+    val uniqueWorkName = "reminder_task_$taskId"
+    WorkManager.getInstance(context).cancelUniqueWork(uniqueWorkName)
+}

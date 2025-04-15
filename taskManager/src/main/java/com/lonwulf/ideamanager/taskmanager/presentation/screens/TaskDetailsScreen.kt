@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +53,7 @@ import com.lonwulf.ideamanager.taskmanager.presentation.viewmodel.TaskManagerVie
 import com.lonwulf.ideamanager.taskmanager.ui.BlueLight
 import com.lonwulf.ideamanager.taskmanager.ui.BluePrimary
 import com.lonwulf.ideamanager.taskmanager.util.SuccessAlertDialog
+import com.lonwulf.ideamanager.taskmanager.util.cancelReminder
 import org.koin.androidx.compose.navigation.koinNavViewModel
 import java.lang.reflect.Type
 
@@ -62,6 +67,10 @@ class TaskDetailsScreenComposable : NavComposable {
     ) {
         TaskDetailsScreen(navHostController = navHostController)
     }
+}
+
+enum class SuccessStateVariant {
+    UPDATE_TASK, DELETE_TASK
 }
 
 @Composable
@@ -78,13 +87,18 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
     val vm: TaskManagerViewModel = koinNavViewModel(viewModelStoreOwner = backStackEntry)
     var successDialogState by remember { mutableStateOf(false) }
     var errorDialogState by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+    var successDialogStateVariant by remember { mutableStateOf("") }
+
 
 
     if (successDialogState) {
+        val message =
+            if (successDialogStateVariant == SuccessStateVariant.DELETE_TASK.name) "Successfully deleted Task" else "Successfully updated Task"
         SuccessAlertDialog(
             onDismissRequest = { errorDialogState = false }, onConfirmation = {
                 navHostController.navigate(TopLevelDestinations.HomeScreen.route)
-            }, successMsg = "Successfully deleted Task"
+            }, successMsg = message
         )
     }
 
@@ -185,7 +199,10 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                                 .size(30.dp)
                                 .clickable {
                                     task.id?.let {
+                                        cancelReminder(ctx, it)
                                         vm.deleteTask(it)
+                                        successDialogStateVariant =
+                                            SuccessStateVariant.DELETE_TASK.name
                                         successDialogState = true
                                     }
                                 }
@@ -228,6 +245,32 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(50.dp))
+                    Button(
+                        onClick = {
+                            task.id?.let {
+                                cancelReminder(ctx, it)
+                                val updatedTask = task.copy(status = true)
+                                vm.updateTask(updatedTask)
+                                successDialogStateVariant = SuccessStateVariant.DELETE_TASK.name
+                                successDialogState = true
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                        )
+                    ) {
+                        Text(
+                            "Complete Task", fontSize = 16.sp, fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                        )
+                    }
                 }
 //            items(subtask) { subtask ->
 //                Card(
@@ -290,7 +333,6 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
 //                    }
 //                }
 //            }
-
             }
         }
     }

@@ -50,15 +50,19 @@ import com.lonwulf.ideamanager.presentation.viewmodel.SharedViewModel
 import com.lonwulf.ideamanager.taskmanager.presentation.screens.CreateTasksScreenComposable
 import com.lonwulf.ideamanager.taskmanager.presentation.screens.TaskDetailsScreenComposable
 import com.lonwulf.ideamanager.ui.theme.IdeaManagerTheme
+import com.lonwulf.ideamanager.util.LightModeManager
 import org.koin.androidx.compose.koinViewModel
+import org.koin.java.KoinJavaComponent.inject
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val lightModeManager: LightModeManager by inject(LightModeManager::class.java)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            IdeaManagerTheme(darkTheme = false) {
+            IdeaManagerTheme(darkTheme = lightModeManager.isDark.value) {
                 val sheetState = rememberModalBottomSheetState()
                 val sharedViewModel = koinViewModel<SharedViewModel>()
                 val navController = rememberNavController()
