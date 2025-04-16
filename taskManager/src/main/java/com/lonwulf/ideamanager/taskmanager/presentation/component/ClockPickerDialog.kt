@@ -92,7 +92,7 @@ fun ClockPickerDialog(
                 .padding(16.dp),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.background
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 6.dp
@@ -109,6 +109,7 @@ fun ClockPickerDialog(
                     text = "Select Time",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(bottom = 24.dp)
@@ -246,7 +247,7 @@ fun ClockPickerDialog(
                                 Text(
                                     text = hour.toString(),
                                     fontSize = 16.sp,
-                                    color = if (isSelected) Color.White else Color.Black
+                                    color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
@@ -295,7 +296,7 @@ fun ClockPickerDialog(
                                 Text(
                                     text = minute.toString().padStart(2, '0'),
                                     fontSize = 16.sp,
-                                    color = if (isSelected) Color.White else Color.Black
+                                    color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         }
