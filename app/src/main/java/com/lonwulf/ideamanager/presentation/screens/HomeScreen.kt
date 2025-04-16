@@ -1,6 +1,5 @@
 package com.lonwulf.ideamanager.presentation.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -108,7 +107,6 @@ fun HomeScreen(
     ) {
         CircularProgressBar(isDisplayed = isLoading)
         tasks.takeIf { it.isNotEmpty() }?.let {
-            Log.e("STHHHH", tasks.toString())
             val progress = calculateProgress(tasks)
             val percentage = (progress * 100).toInt()
             val totalBarWidth = 100.dp

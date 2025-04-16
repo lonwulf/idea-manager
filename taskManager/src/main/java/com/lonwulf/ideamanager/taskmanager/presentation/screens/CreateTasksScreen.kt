@@ -440,7 +440,6 @@ fun CreateTaskScreen(
                         dueDate = endTime.toString(),
                         required = required
                     )
-                    Log.e("Dateeeeee", selectedDate)
                     if (isSuccess) {
                         isLoading = true
                         task = TaskItem(

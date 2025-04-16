@@ -1,5 +1,6 @@
 package com.lonwulf.ideamanager.core.database.dao
 
+import android.util.Log
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -23,10 +24,9 @@ interface TaskItemDao {
     fun updateTaskStatus(status: Boolean, id: Int): Int
 
     @Transaction
-    fun updateTask(entityData: TaskItemEntity): Int {
-        return if (getTask(entityData.id) != null) {
-            updateTaskStatus(entityData.status, entityData.id)
-//            update(entityData)
+    fun updateTask(entity: TaskItemEntity): Int {
+        return if (getTask(entity.id) != null) {
+            updateTaskStatus(true, entity.id)
             1
         } else {
             0

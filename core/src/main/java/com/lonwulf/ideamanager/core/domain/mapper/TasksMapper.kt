@@ -19,7 +19,8 @@ fun TaskItemEntity.mapEntityToDomain(): TaskItem =
         description = this.description,
         date = this.date,
         category = this.category,
-        id = this.id
+        id = this.id,
+        status = this.status
     )
 
 fun TaskItem.mapDomainToEntity(): TaskItemEntity = TaskItemEntity(
