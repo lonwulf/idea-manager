@@ -174,32 +174,34 @@ fun TaskDetailsScreen(modifier: Modifier = Modifier, navHostController: NavHostC
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                         Spacer(modifier = Modifier.weight(1f))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .clickable {
-                                    val stringTask = Gson().toJson(task)
-                                    navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                                        "task",
-                                        stringTask
-                                    )
-                                    navHostController.navigate(Destinations.CreateTasksScreen.route)
-                                }
-                        ) {
-                            Text(
-                                "Edit",
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.tertiary,
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Icon(
-                                Icons.Default.Create,
-                                contentDescription = "Edit",
-                                tint = MaterialTheme.colorScheme.tertiary,
+                        task.takeIf { it.status == false }?.let {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .size(25.dp)
-                            )
+                                    .padding(bottom = 16.dp)
+                                    .clickable {
+                                        val stringTask = Gson().toJson(task)
+                                        navHostController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "task",
+                                            stringTask
+                                        )
+                                        navHostController.navigate(Destinations.CreateTasksScreen.route)
+                                    }
+                            ) {
+                                Text(
+                                    "Edit",
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Icon(
+                                    Icons.Default.Create,
+                                    contentDescription = "Edit",
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier
+                                        .size(25.dp)
+                                )
+                            }
                         }
                     }
 

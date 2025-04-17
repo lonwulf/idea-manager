@@ -147,7 +147,7 @@ fun CreateTaskScreen(
         task = Gson().fromJson(taskString, typeToken)
         task?.let {
             taskName = it.title ?: ""
-            selectedDate = it.date.toString()
+//            selectedDate = it.date.toString()
         }
 
     }
